@@ -34,7 +34,8 @@ class SmpApiClient(HelperMethodsMixin, BaseApiClient, metaclass=SmpApiClientMeta
         elif get_content_type(response) == 'application/json':
             return response.json()
         else:
-            return response.content
+            # when in drf veiw we return None, drf ignored json content-type and return content == b''
+            return response.content or None
 
     def get_media_client(self, credential):
         return MediaClient(credential=credential, session=self.session)
