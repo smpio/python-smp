@@ -1,12 +1,14 @@
 import copy
 import functools
 import json
-
-from .exceptions import NoMatchingCredential, MultipleObjectsReturned
-from .models import MediumErrorType
+from typing import Dict, NoReturn
 
 from httpapiclient import BaseApiClient, DEFAULT_TIMEOUT, ApiRequest
 from httpapiclient.mixins import JsonResponseMixin, HelperMethodsMixin
+from utils.queue_worker import QueueWorkerThread
+
+from .exceptions import NoMatchingCredential, MultipleObjectsReturned
+from .models import MediumErrorType
 
 
 class SmpApiRequest(ApiRequest):
@@ -27,12 +29,16 @@ class SmpApiRequest(ApiRequest):
         return kwargs
 
 
-class SmpApiClient(JsonResponseMixin, HelperMethodsMixin, BaseApiClient):
+class SmpApiClient(JsonResponseMixin, HelperMethodsMixin, BaseApiClient, QueueWorkerThread):
     default_timeout = (6.1, None)
     request_class = SmpApiRequest
 
-    def __init__(self, *, base_url=None, basic_auth=None, user_id=None):
+    def __init__(self, *, base_url=None, basic_auth=None, be_async=False, user_id=None):
         super().__init__()
+
+        if be_async:
+            self.async_client = QueueWorkerThread(thread_name='async_smp_client')
+
         if base_url is None:
             base_url = 'https://api.smp.io/'
 
@@ -142,6 +148,15 @@ class SmpApiClient(JsonResponseMixin, HelperMethodsMixin, BaseApiClient):
                     return
                 yield row
                 resource_counter += 1
+
+    def queue_post(self, path: str, data: Dict) -> NoReturn:
+        if getattr(self, 'async_client', None):
+            if data and data.get('account_external_id') is None:
+                data['account_external_id'] = ''
+
+            self.async_client.queue(self.post, path=path, json=data)
+        else:
+            raise TypeError('Client must be initialized with be_async=True to use async post')
 
 
 class MediaClient(SmpApiClient):
