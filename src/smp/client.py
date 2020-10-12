@@ -5,10 +5,10 @@ from typing import Dict, NoReturn
 
 from httpapiclient import BaseApiClient, DEFAULT_TIMEOUT, ApiRequest
 from httpapiclient.mixins import JsonResponseMixin, HelperMethodsMixin
-from utils.queue_worker import QueueWorkerThread
 
 from .exceptions import NoMatchingCredential, MultipleObjectsReturned
 from .models import MediumErrorType
+from .utils.queue_worker import QueueWorkerThread
 
 
 class SmpApiRequest(ApiRequest):
@@ -36,8 +36,10 @@ class SmpApiClient(JsonResponseMixin, HelperMethodsMixin, BaseApiClient, QueueWo
     def __init__(self, *, base_url=None, basic_auth=None, be_async=False, user_id=None):
         super().__init__()
 
+        self._async_client = None
+        self.client_is_async = False
         if be_async:
-            self.async_client = QueueWorkerThread(thread_name='async_smp_client')
+            self.client_is_async = True
 
         if base_url is None:
             base_url = 'https://api.smp.io/'
@@ -48,6 +50,16 @@ class SmpApiClient(JsonResponseMixin, HelperMethodsMixin, BaseApiClient, QueueWo
             self.session.auth = basic_auth
             if user_id is not None:
                 self.session.headers['X-SMP-UserId'] = str(user_id)
+
+    @property
+    def async_client(self):
+        if not self.client_is_async:
+            raise TypeError('Client must be initialized with be_async=True to use async requests')
+
+        if not self._async_client:
+            self._async_client = QueueWorkerThread(thread_name='async_smp_client')
+
+        return self._async_client
 
     def get_media_client(self, credential):
         return MediaClient(credential, session=self.session, base_url=self.base_url)
@@ -150,13 +162,10 @@ class SmpApiClient(JsonResponseMixin, HelperMethodsMixin, BaseApiClient, QueueWo
                 resource_counter += 1
 
     def queue_post(self, path: str, data: Dict) -> NoReturn:
-        if getattr(self, 'async_client', None):
-            if data and data.get('account_external_id') is None:
-                data['account_external_id'] = ''
+        if data and data.get('account_external_id') is None:
+            data['account_external_id'] = ''
 
-            self.async_client.queue(self.post, path=path, json=data)
-        else:
-            raise TypeError('Client must be initialized with be_async=True to use async post')
+        self.async_client.queue(self.post, path=path, json=data)
 
 
 class MediaClient(SmpApiClient):
