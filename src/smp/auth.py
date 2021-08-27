@@ -1,7 +1,7 @@
 import datetime
 
 
-def create_jwt(app_id, app_secret, user_id=None, scopes=None, duration=None):
+def create_jwt(app_id, app_secret, user_id=None, session_id=None, scopes=None, duration=None):
     import jwt
 
     if duration is None:
@@ -15,6 +15,9 @@ def create_jwt(app_id, app_secret, user_id=None, scopes=None, duration=None):
 
     if user_id is not create_jwt.undefined_user:
         payload['sub'] = user_id
+
+    if session_id is not None:
+        payload['sid'] = session_id
 
     return jwt.encode(payload, app_secret, algorithm='HS256')
 
