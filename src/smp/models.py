@@ -26,6 +26,7 @@ class Medium(enum.IntEnum):
     mytarget = 21
     smmplanner = 22
     instagram_business = 23
+    tiktok = 24
 
 
 @enum.unique
