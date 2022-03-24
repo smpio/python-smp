@@ -56,6 +56,7 @@ class ProxyAccident(enum.IntEnum):
     ig_sentry_block = 12
     ig_repeating_logout = 13
     captcha_requested = 15
+    too_many_requests = 16
 
 
 @enum.unique
