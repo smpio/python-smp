@@ -26,6 +26,8 @@ class Medium(enum.IntEnum):
     mytarget = 21
     smmplanner = 22
     instagram_business = 23
+    tiktok = 24
+    discord = 25
 
 
 @enum.unique
@@ -54,6 +56,8 @@ class ProxyAccident(enum.IntEnum):
     ig_comment_removed = 10
     ig_sentry_block = 12
     ig_repeating_logout = 13
+    captcha_requested = 15
+    too_many_requests = 16
 
 
 @enum.unique
