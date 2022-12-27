@@ -28,6 +28,7 @@ class Medium(enum.IntEnum):
     instagram_business = 23
     tiktok = 24
     discord = 25
+    elama = 26
 
 
 @enum.unique
