@@ -29,6 +29,7 @@ class Medium(enum.IntEnum):
     tiktok = 24
     discord = 25
     elama = 26
+    vk_ads = 27
 
 
 @enum.unique
