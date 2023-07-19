@@ -30,6 +30,7 @@ class Medium(enum.IntEnum):
     discord = 25
     elama = 26
     vk_ads = 27
+    tenchat = 28
 
 
 @enum.unique
