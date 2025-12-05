@@ -31,6 +31,8 @@ class Medium(enum.IntEnum):
     elama = 26
     vk_ads = 27
     tenchat = 28
+    max = 29
+    telegram_mtproto = 30
 
 
 @enum.unique
