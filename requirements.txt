@@ -1,4 +1,4 @@
 # httpapiclient
-PyJWT >= 2.0.0
+PyJWT >= 2.0.0, < 2.10.0  # 2.10 insists on 'sub' must be str, but we want it to be int
 pika >= 1.0.1
 certifi
