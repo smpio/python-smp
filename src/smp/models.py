@@ -33,6 +33,7 @@ class Medium(enum.IntEnum):
     tenchat = 28
     max = 29
     telegram_mtproto = 30
+    paddle = 31
 
 
 @enum.unique
