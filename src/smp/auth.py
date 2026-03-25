@@ -8,7 +8,7 @@ def create_jwt(app_id, app_secret, user_id=None, scopes=None, duration=None, ext
         duration = datetime.timedelta(minutes=5)
 
     payload = dict(
-        iss=app_id,
+        iss=str(app_id),
         scp=scopes,
         exp=datetime.datetime.now(datetime.timezone.utc) + duration,
         **(extra_payload or {})
