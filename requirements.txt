@@ -1,4 +1,4 @@
 # httpapiclient
-PyJWT
+PyJWT >= 2.8.0, < 2.10.0  # TODO unlock when SMP secret keys will be 32b (now 22b)
 pika >= 1.0.1
 certifi
