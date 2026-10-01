@@ -1,4 +1,6 @@
 # httpapiclient
-PyJWT >= 2.8.0, < 2.10.0  # TODO unlock when SMP secret keys will be 32b (now 22b)
+# 2.15 fixes the JWT/JWK parsing and HMAC key-validation advisories.
+# Existing 22-byte HMAC keys produce a warning, not an error, with default options.
+PyJWT >= 2.15.0, < 3.0.0
 pika >= 1.0.1
 certifi
