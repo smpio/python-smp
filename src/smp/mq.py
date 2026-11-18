@@ -46,6 +46,16 @@ def make_thread_safe(func):
     return wrapper
 
 
+def _resolve_credentials(auth):
+    """Return the auth tuple as plain strings.
+
+    Settings may hold lazy values (the Django service token is a lazy proxy)
+    while pika accepts only str/bytes in the authentication handshake.
+    """
+    username, password = auth
+    return str(username), str(password)
+
+
 class SmpMqClient:
     main_exchange = 'smp'
     requeue_message_on_exception = True
@@ -75,6 +85,8 @@ class SmpMqClient:
 
     def connect(self):
         if self.conn is None or self.conn.is_closed:
+            # The service token rotates while the worker stays alive.
+            self.cp.refresh_credentials()
             self.conn = pika.BlockingConnection(self.cp)
             self.channel = None
 
@@ -203,6 +215,7 @@ class ConnectionParameters(pika.URLParameters):
     def __init__(self, url, auth=None):
         url = url.replace('amqp+ssl://', 'amqps://')  # TODO: remove
         super().__init__(url)
+        self._auth = auth
 
         if self.ssl_options:
             ssl_context = ssl.create_default_context(
@@ -214,8 +227,7 @@ class ConnectionParameters(pika.URLParameters):
                 context=ssl_context,
             )
 
-        if auth:
-            self.credentials = pika.PlainCredentials(*auth)
+        self.refresh_credentials()
 
         # On staging server mq_consumer get stuck and not receive new messages anymore
         # without any log messages
@@ -242,3 +254,12 @@ class ConnectionParameters(pika.URLParameters):
         # TCP_KEEPIDLE to something significantly below 15 minutes.
         if self.heartbeat == 0:
             self.tcp_options = dict(TCP_KEEPIDLE=60 * 5)
+
+    def refresh_credentials(self):
+        """Rebuild PlainCredentials from the current auth values.
+
+        Called before every handshake: the credentials may be lazy and the
+        service token behind them is rotated while the process stays alive.
+        """
+        if self._auth:
+            self.credentials = pika.PlainCredentials(*_resolve_credentials(self._auth))
