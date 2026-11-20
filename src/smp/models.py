@@ -37,6 +37,7 @@ class Medium(enum.IntEnum):
     rutube = 32
     chat_gpt = 33
     threads = 34
+    avito = 35
 
 
 @enum.unique
